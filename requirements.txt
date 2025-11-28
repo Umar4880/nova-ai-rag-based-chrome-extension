@@ -1,0 +1,12 @@
+langchain
+langchain-community
+langchain-google-genai
+langchain-redis
+playwright
+pydantic
+pydantic-settings
+redis
+uvicorn
+fastapi
+python-dotenv
+unstructured

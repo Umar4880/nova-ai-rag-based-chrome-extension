@@ -1,0 +1,40 @@
+# Build files
+*.zip
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+app/log/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+build/
+dist/
+.eggs/
+*.egg-info/
+
+# Virtualenv
+venv/
+
+# Environment/config
+.env
+
+# Chrome extension artifacts
+app/ui/lib/
+app/ui/icons/
+
+# Test output
+.coverage
+htmlcov/

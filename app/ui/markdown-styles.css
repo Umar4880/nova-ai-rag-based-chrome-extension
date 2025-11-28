@@ -1,0 +1,359 @@
+/* Markdown Renderer Styles */
+
+/* Base container overflow protection */
+.markdown-content {
+    width: 100%;
+    max-width: 100%;
+    overflow: visible;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    box-sizing: border-box;
+    display: block;
+}
+
+/* Math rendering styles */
+.math-error {
+    color: #ff6b6b;
+    background: #ffe0e0;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+}
+
+.math-fallback {
+    font-family: 'Courier New', monospace;
+    color: #666;
+}
+
+.katex {
+    font-size: 1.05em;
+    max-width: 100%;
+    overflow: visible;
+    display: inline;
+    vertical-align: baseline;
+    white-space: nowrap;
+}
+
+.katex-display {
+    margin: 0.5em 0;
+    text-align: left;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    display: block;
+    padding: 4px 0;
+}
+
+.katex-display::-webkit-scrollbar {
+    height: 6px;
+}
+
+.katex-display::-webkit-scrollbar-track {
+    background: #f0f0f0;
+    border-radius: 3px;
+}
+
+.katex-display::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 3px;
+}
+
+.katex-display::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+}
+
+/* Code blocks */
+.code-block-wrapper {
+    margin: 12px 0;
+    border-radius: 8px;
+    overflow: hidden;
+    max-width: 100%;
+    background: #1e1e1e;
+    border: 1px solid #333;
+    box-sizing: border-box;
+}
+
+.code-block-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: #2d2d2d;
+    border-bottom: 1px solid #333;
+}
+
+.code-language {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #888;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.copy-code-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: transparent;
+    border: 1px solid #444;
+    color: #aaa;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.copy-code-btn:hover {
+    background: #383838;
+    border-color: #666;
+    color: #fff;
+}
+
+.copy-code-btn.copied {
+    background: #1a7f37;
+    border-color: #1a7f37;
+    color: #fff;
+}
+
+.code-block {
+    margin: 0;
+    padding: 16px;
+    background: #1e1e1e;
+    overflow-x: auto;
+    overflow-y: hidden;
+    max-width: 100%;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #d4d4d4;
+    word-break: break-all;
+    white-space: pre-wrap;
+}
+
+.code-block code {
+    font-family: inherit;
+    background: transparent;
+    padding: 0;
+    border: none;
+}
+
+/* Inline code */
+.inline-code {
+    background: #f5f5f5;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 0.9em;
+    color: #c7254e;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+    display: inline-block;
+}
+
+/* Headers */
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3 {
+    margin: 8px 0 8px;
+    font-weight: 600;
+    line-height: 1.25;
+    color: #1a1a1a;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+}
+
+.markdown-content h1 {
+    font-size: 22px;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 6px;
+    margin-top: 16px;
+}
+
+.markdown-content h2 {
+    font-size: 19px;
+    border-bottom: 1px solid #e8e8e8;
+    padding-bottom: 4px;
+    margin-top: 6px;
+}
+
+.markdown-content h3 {
+    font-size: 16px;
+    margin-top: 12px;
+}
+
+/* Paragraphs */
+.markdown-content p {
+    margin: 4px 0;
+    line-height: 1.6;
+    color: #333;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+    display: block;
+    overflow: visible;
+}
+
+/* Lists */
+.markdown-content ul,
+.markdown-content ol {
+    margin: 2px 0;
+    padding-left: 28px;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.markdown-content li {
+    margin: 1px 0;
+    line-height: 1.5;
+    color: #333;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    display: list-item;
+    overflow: visible;
+}
+
+.markdown-content ul li {
+    list-style-type: disc;
+    padding-left: 4px;
+}
+
+.markdown-content ol li {
+    list-style-type: decimal;
+    padding-left: 4px;
+}
+
+/* Nested lists - tighter spacing */
+.markdown-content li > ul,
+.markdown-content li > ol {
+    margin: 2px 0;
+    padding-left: 20px;
+}
+
+.markdown-content li > ul > li,
+.markdown-content li > ol > li {
+    margin: 2px 0;
+}
+
+/* Bold and Italic */
+.markdown-content strong {
+    font-weight: 600;
+    color: #1a1a1a;
+    display: inline;
+    overflow: visible;
+}
+
+.markdown-content em {
+    font-style: italic;
+    color: #555;
+    display: inline;
+    overflow: visible;
+}
+
+/* Links */
+.markdown-content a {
+    color: #0066cc;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s;
+}
+
+.markdown-content a:hover {
+    border-bottom-color: #0066cc;
+}
+
+/* Blockquotes */
+.markdown-content blockquote {
+    margin: 10px 0;
+    padding: 8px 12px;
+    border-left: 3px solid #0066cc;
+    background: #f8f9fa;
+    color: #555;
+    font-style: italic;
+}
+
+/* Scrollbar for code blocks */
+.code-block::-webkit-scrollbar {
+    height: 8px;
+}
+
+.code-block::-webkit-scrollbar-track {
+    background: #2d2d2d;
+}
+
+.code-block::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 4px;
+}
+
+.code-block::-webkit-scrollbar-thumb:hover {
+    background: #666;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .markdown-content h1 {
+        font-size: 20px;
+    }
+    
+    .markdown-content h2 {
+        font-size: 18px;
+    }
+    
+    .markdown-content h3 {
+        font-size: 16px;
+    }
+    
+    .code-block {
+        font-size: 12px;
+        padding: 12px;
+    }
+}
+
+/* Loading animation for streaming */
+.markdown-streaming::after {
+    content: '▋';
+    animation: blink 1s infinite;
+    color: #0066cc;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+/* Fix for mathematical fractions and complex expressions */
+.katex .frac-line {
+    border-bottom-width: 0.04em;
+}
+
+.katex .mfrac {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* Ensure inline math doesn't cause scrollbars */
+.markdown-content .katex {
+    overflow: visible !important;
+}
+
+/* Fix for theta and other Greek letters alignment */
+.katex .mord,
+.katex .mrel,
+.katex .mop,
+.katex .mbin {
+    display: inline;
+    vertical-align: baseline;
+}
+
+/* Remove unwanted scrollbars from message content */
+.ai-chat-message-content * {
+    box-sizing: border-box;
+}
+
+.ai-chat-message-content .katex-html {
+    overflow: visible;
+}
