@@ -65,50 +65,58 @@ AI Chat Assistant is an enterprise-grade Chrome extension that enables intellige
 
 ## 🏗️ Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                          CHROME EXTENSION                                │
-│  ┌─────────────┐  ┌──────────────┐  ┌─────────────┐  ┌──────────────┐   │
-│  │  popup.js   │  │ background.js│  │  content.js │  │  settings.js │   │
-│  │  (UI Entry) │  │ (Service     │  │  (Chat UI)  │  │  (Config)    │   │
-│  │             │  │  Worker)     │  │             │  │              │   │
-│  └──────┬──────┘  └──────┬───────┘  └──────┬──────┘  └──────────────┘   │
-└─────────┼────────────────┼─────────────────┼────────────────────────────┘
-          │                │                 │
-          └────────────────┼─────────────────┘
-                           │ HTTP/REST
-                           ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         FASTAPI BACKEND                                  │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────────┐  │
-│  │   API Routes    │  │   Chat Service  │  │   Exception Handlers    │  │
-│  │   /api/v1/*     │──│                 │  │   (Custom Exceptions)   │  │
-│  └────────┬────────┘  └────────┬────────┘  └─────────────────────────┘  │
-│           │                    │                                         │
-│  ┌────────▼────────────────────▼────────────────────────────────────┐   │
-│  │                        CHAIN LAYER                                │   │
-│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐    │   │
-│  │  │  ChatChain   │  │  RAGChain    │  │  RunnableWithHistory │    │   │
-│  │  │  (LLM Logic) │  │  (Retrieval) │  │  (Session Memory)    │    │   │
-│  │  └──────────────┘  └──────────────┘  └──────────────────────┘    │   │
-│  └──────────────────────────────────────────────────────────────────┘   │
-│                                                                          │
-│  ┌──────────────────────────────────────────────────────────────────┐   │
-│  │                        RAG PIPELINE                               │   │
-│  │  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌────────────┐  │   │
-│  │  │   Loader   │─▶│  Splitter  │─▶│VectorStore │─▶│ Retriever  │  │   │
-│  │  │(Playwright)│  │(Recursive) │  │  (Redis)   │  │   (MMR)    │  │   │
-│  │  └────────────┘  └────────────┘  └────────────┘  └────────────┘  │   │
-│  └──────────────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────────────┘
-                           │                        │
-                           ▼                        ▼
-              ┌────────────────────┐   ┌────────────────────┐
-              │   Redis Vector     │   │   Redis Chat       │
-              │   Store (6380)     │   │   History (6381)   │
-              │   - Embeddings     │   │   - Messages       │
-              │   - Metadata Tags  │   │   - Session Meta   │
-              └────────────────────┘   └────────────────────┘
+```mermaid
+flowchart TD
+  subgraph CE[Chrome Extension]
+    popup[popup.js<br/>UI Entry]
+    background[background.js<br/>Service Worker]
+    content[content.js<br/>Chat UI]
+    settings[settings.js<br/>Config]
+  end
+
+  subgraph FB[FastAPI Backend]
+    api[API Routes<br/>/api/v1/*]
+    service[Chat Service]
+    exceptions[Exception Handlers<br/>Custom Exceptions]
+
+    subgraph CL[Chain Layer]
+      chatchain[ChatChain<br/>LLM Logic]
+      ragchain[RAGChain<br/>Retrieval]
+      history[RunnableWithHistory<br/>Session Memory]
+    end
+
+    subgraph RP[RAG Pipeline]
+      loader[Loader<br/>Playwright]
+      splitter[Splitter<br/>Recursive]
+      vectorstore[VectorStore<br/>Redis]
+      retriever[Retriever<br/>MMR]
+    end
+  end
+
+  popup -->|HTTP/REST| api
+  background -->|HTTP/REST| api
+  content -->|HTTP/REST| api
+  settings -->|HTTP/REST| api
+
+  api --> service
+  api --> chatchain
+  api --> ragchain
+  service --> chatchain
+  service --> ragchain
+  api -.-> exceptions
+  service -.-> exceptions
+
+  chatchain --> history
+  ragchain --> history
+  ragchain --> loader
+  loader --> splitter --> vectorstore --> retriever
+  retriever --> ragchain
+
+  vector_db[Redis Vector Store :6380<br/>Embeddings<br/>Metadata Tags]
+  chat_db[Redis Chat History :6381<br/>Messages<br/>Session Metadata]
+
+  vectorstore --> vector_db
+  history --> chat_db
 ```
 
 ---
