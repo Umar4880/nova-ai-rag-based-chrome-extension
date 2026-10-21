@@ -1,45 +1,71 @@
-from langchain_community.document_loaders import PlaywrightURLLoader
-from app.exceptions.client_error import NetworkError
-from app.exceptions.server_error import URLValidationError, PageNotFoundError
+import asyncio
+import logging
 from typing import List, Union
 from urllib.parse import urlparse
+
+from langchain_community.document_loaders import PlaywrightURLLoader
+from langchain_core.documents import Document
+from app.exceptions.client_error import NetworkError
+from app.exceptions.server_error import URLValidationError, PageNotFoundError
+
+logger = logging.getLogger(__name__)
 
 class LoadingManagement:
 
     def __init__(self, 
-                 url:List = None, 
-                 continue_on_failure:bool = False, 
-                 remove_selecore:List = ["nav",'header', 'footer', '.ads'],
-                 headless:bool = True ):
+                 url: List = None, 
+                 continue_on_failure: bool = True, 
+                 remove_selecore: List = ["nav", "header", "footer", ".ads"],
+                 headless: bool = True):
         
         if self._validate_url(url):
-            self.url=url
+            self.url = url
         
-        self.contine=continue_on_failure
-        self.remove_selectors=remove_selecore
-        self.headless=headless
+        self.contine = continue_on_failure
+        self.remove_selectors = remove_selecore
+        self.headless = headless
 
     async def get_documents(self):
         """load the webpage using playwright"""
-
         try:
-            lodader = PlaywrightURLLoader(
-                        urls=self.url,
-                        continue_on_failure= self.contine,
-                        remove_selectors= self.remove_selectors,
-                        headless= self.headless)
+            loader = PlaywrightURLLoader(
+                urls=self.url,
+                continue_on_failure=self.contine,
+                remove_selectors=self.remove_selectors,
+                headless=self.headless,
+            )
             
-            result = await lodader.aload()
+            # Run synchronous loader in worker thread to prevent Windows
+            # asyncio SelectorEventLoop NotImplementedError with subprocesses
+            result = await asyncio.to_thread(loader.load)
+
+            # If page loaded without text content (or auth wall / empty SPA),
+            # provide a fallback document so RAG chain doesn't break
+            if not result or not any(doc.page_content.strip() for doc in result):
+                main_url = self.url[0] if isinstance(self.url, list) and self.url else str(self.url)
+                return [
+                    Document(
+                        page_content=f"Current Webpage: {main_url}\nNote: Dynamic content could not be rendered from this page. You can still ask questions about this page or general questions.",
+                        metadata={"source": main_url}
+                    )
+                ]
+
             return result 
         except Exception as e:
             msg = str(e) or ""
-            network_error = False
             if "net::" in msg or "ERR_NAME_NOT_RESOLVED" in msg or "ENOTFOUND" in msg:
-                network_error = True
-                raise NetworkError(message="NetworkError: Unable to connect ot internet.", details = {"url": self.url, "error": msg, "original_exp":e, "network_error": network_error})
+                raise NetworkError(message="NetworkError: Unable to connect to internet.", details={"url": self.url, "error": msg, "original_exp": e, "network_error": True})
             
-            else:
-                raise PageNotFoundError(message=f"Page not found at url {self.url}", details = {"url":self.url, "orginal_exp":e})
+            # If Playwright fails on a specific complex/protected URL,
+            # return a fallback document rather than failing the entire chat session creation
+            logger.warning(f"Could not load webpage {self.url} with Playwright: {e}. Using fallback document.")
+            main_url = self.url[0] if isinstance(self.url, list) and self.url else str(self.url)
+            return [
+                Document(
+                    page_content=f"Current Webpage: {main_url}\nNote: Page content could not be extracted directly. You can still ask questions about this page or general questions.",
+                    metadata={"source": main_url}
+                )
+            ]
 
     
     def _validate_url(self, url: List = None) -> bool:

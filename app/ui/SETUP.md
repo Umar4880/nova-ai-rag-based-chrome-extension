@@ -110,21 +110,6 @@ Edit `manifest.json` to add/remove permissions or change which sites the extensi
 
 See `README.md` for detailed publishing instructions.
 
-### Requirements:
-1. Professional icons (not placeholders)
-2. Privacy policy (if collecting data)
-3. Screenshots (1280x800 or 640x400)
-4. Detailed description
-5. Developer account ($5 one-time fee)
-
-## Next Steps
-
-1. **Test thoroughly**: Try different websites, clear history, check error handling
-2. **Improve icons**: Create professional-looking icons for production
-3. **Add features**: Consider adding settings, themes, or keyboard shortcuts
-4. **Prepare for production**: Update API URL, create privacy policy, gather screenshots
-5. **Publish**: Submit to Chrome Web Store when ready
-
 ## Support
 
 - Check browser console for errors

@@ -1,25 +1,27 @@
+version: '3.8'
+
 services:
   redis-vector:
-    image: redis/redis-stack:latest
+    # Official image containing RediSearch and RedisJSON modules
+    image: redis/redis-stack-server:latest
     ports:
       - "6380:6379"
     container_name: redis-vector
+    environment:
+      - REDIS_ARGS=--save 60 1
+    volumes:
+      - redis_vector_data:/data
 
   redis-chat:
-    image: redis/redis-stack:latest
+    # Fixed official namespace (removed 'redis/' prefix)
+    image: redis:7-alpine
     ports:
       - "6381:6379"
     container_name: redis-chat
+    command: redis-server --save 60 1
+    volumes:
+      - redis_chat_data:/data
 
-  # fastapi-app:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "8000:8000"
-  #   container_name: fastapi-app
-  #   env_file:
-  #     - .env
-  #   depends_on:
-  #     - redis-vector
-  #     - redis-chat
+volumes:
+  redis_vector_data:
+  redis_chat_data:

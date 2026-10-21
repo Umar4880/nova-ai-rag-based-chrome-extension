@@ -27,6 +27,7 @@ dist/
 
 # Virtualenv
 venv/
+.venv/
 
 # Environment/config
 .env

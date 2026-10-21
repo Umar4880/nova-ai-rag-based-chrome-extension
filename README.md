@@ -1,14 +1,12 @@
-# 🤖 AI Chat Assistant - Chrome Extension with RAG Backend
+# AI Chat Assistant - Chrome Extension with RAG Backend
 
 A production-ready AI-powered chatbot Chrome extension featuring **Retrieval-Augmented Generation (RAG)**, **session management**, and **intelligent context-aware responses**. Built with FastAPI, LangChain, Redis Vector Store, and Google Gemini LLM.
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
-![Python](https://img.shields.io/badge/python-3.11+-green.svg)
-![License](https://img.shields.io/badge/license-MIT-purple.svg)
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg) ![Python](https://img.shields.io/badge/python-3.11+-green.svg) ![License](https://img.shields.io/badge/license-MIT-purple.svg)
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Overview](#-overview)
 - [Features](#-features)
@@ -25,7 +23,7 @@ A production-ready AI-powered chatbot Chrome extension featuring **Retrieval-Aug
 
 ---
 
-## 🎯 Overview
+## Overview
 
 AI Chat Assistant is an enterprise-grade Chrome extension that enables intelligent, context-aware conversations based on the content of any webpage. When a user starts a chat on a webpage, the system:
 
@@ -38,82 +36,132 @@ AI Chat Assistant is an enterprise-grade Chrome extension that enables intellige
 
 ---
 
-## ✨ Features
+## Features
 
 ### Core Functionality
-- **🔍 RAG Pipeline**: Full Retrieval-Augmented Generation with semantic search
-- **💬 Session Management**: Per-tab session isolation with Redis-backed chat history
-- **🧠 Context-Aware Responses**: LLM responses grounded in webpage content
-- **📝 Markdown & LaTeX Rendering**: Rich text formatting with mathematical notation support
-- **⚙️ Custom LLM Settings**: Users can configure their own API keys and model preferences
+- **RAG Pipeline**: Full Retrieval-Augmented Generation with semantic search
+- **Session Management**: Per-tab session isolation with Redis-backed chat history
+- **Context-Aware Responses**: LLM responses grounded in webpage content
+- **Markdown & LaTeX Rendering**: Rich text formatting with mathematical notation support
+- **Custom LLM Settings**: Users can configure their own API keys and model preferences
 
 ### Technical Features
-- **🔄 Singleton VectorStore Manager**: Enterprise-grade connection pooling
-- **🎯 Session-Scoped Retrieval**: Filter vectors by session_id and user_id using Redis Tag filters
-- **📊 MMR Search**: Maximal Marginal Relevance for diverse, relevant context retrieval
-- **🔐 TTL-Based Session Expiry**: Automatic cleanup of stale sessions (24-hour default)
-- **⚡ Async Web Scraping**: Non-blocking content extraction with Playwright
-- **🐳 Docker Support**: Containerized Redis instances for development
+- **Singleton VectorStore Manager**: Enterprise-grade connection pooling
+- **Session-Scoped Retrieval**: Filter vectors by session_id and user_id using Redis Tag filters
+- **MMR Search**: Maximal Marginal Relevance for diverse, relevant context retrieval
+- **TTL-Based Session Expiry**: Automatic cleanup of stale sessions (24-hour default)
+- **Async Web Scraping**: Non-blocking content extraction with Playwright
+- **Docker Support**: Containerized Redis instances for development
 
 ### Chrome Extension
-- **🎨 Floating Chat Widget**: Non-intrusive UI that works on any webpage
-- **🔗 Per-Tab Sessions**: Each browser tab maintains its own chat context
-- **💾 Persistent Settings**: User preferences stored locally
-- **🎛️ Settings Page**: Configure custom LLM API keys, model selection, temperature
+- **Floating Chat Widget**: Non-intrusive UI that works on any webpage
+- **Per-Tab Sessions**: Each browser tab maintains its own chat context
+- **Persistent Settings**: User preferences stored locally
+- **Settings Page**: Configure custom LLM API keys, model selection, temperature
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
+```mermaid
+flowchart TB
+    subgraph Browser["Chrome Extension (Manifest V3)"]
+        Popup["popup.js (UI Entry)"]
+        SW["background.js (Service Worker)"]
+        Content["content.js (Chat Widget)"]
+        Settings["settings.js (Config)"]
+    end
+
+    subgraph Backend["FastAPI Backend (Port 8000)"]
+        Router["API Router (/api/v1)"]
+        ChatSvc["ChatService"]
+        
+        subgraph Chains["Chain Layer"]
+            ChatChain["ChatChain (LLM Logic)"]
+            RAGChain["RAGChain (Retrieval & Split)"]
+            Hist["RunnableWithHistory (Memory)"]
+        end
+        
+        subgraph Pipeline["RAG Pipeline"]
+            Loader["Playwright Loader"]
+            Splitter["Recursive Splitter"]
+            VSMgr["VectorStore Manager"]
+            Retriever["MMR Retriever"]
+        end
+    end
+
+    subgraph Storage["Dockerized Redis Services"]
+        RedisVec[("Redis Vector Store (Port 6380)\n- Embeddings & Chunks\n- Session Tag Filters")]
+        RedisChat[("Redis Chat DB (Port 6381)\n- Message History\n- Session Metadata")]
+    end
+
+    subgraph Cloud["Google Cloud / Gemini"]
+        GeminiLLM["Gemini 2.5 Flash / 2.0 Flash"]
+        GeminiEmb["gemini-embedding-001"]
+    end
+
+    Popup -->|"Trigger Session"| SW
+    Content -->|"User Chat / Actions"| SW
+    Settings -.->|"User Config"| SW
+    
+    SW -->|"HTTP / REST API"| Router
+    Router --> ChatSvc
+    ChatSvc --> ChatChain
+    ChatSvc --> RAGChain
+    ChatSvc --> Hist
+
+    RAGChain --> Loader
+    Loader --> Splitter
+    Splitter --> VSMgr
+    VSMgr <-->|"Create Vectors"| GeminiEmb
+    VSMgr -->|"Store Documents"| RedisVec
+    
+    Hist <-->|"Persist / Fetch History"| RedisChat
+    Retriever <-->|"MMR Similarity Search"| RedisVec
+    ChatChain --> Retriever
+    ChatChain <-->|"Generate Grounded Answer"| GeminiLLM
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                          CHROME EXTENSION                                │
-│  ┌─────────────┐  ┌──────────────┐  ┌─────────────┐  ┌──────────────┐   │
-│  │  popup.js   │  │ background.js│  │  content.js │  │  settings.js │   │
-│  │  (UI Entry) │  │ (Service     │  │  (Chat UI)  │  │  (Config)    │   │
-│  │             │  │  Worker)     │  │             │  │              │   │
-│  └──────┬──────┘  └──────┬───────┘  └──────┬──────┘  └──────────────┘   │
-└─────────┼────────────────┼─────────────────┼────────────────────────────┘
-          │                │                 │
-          └────────────────┼─────────────────┘
-                           │ HTTP/REST
-                           ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         FASTAPI BACKEND                                  │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────────┐  │
-│  │   API Routes    │  │   Chat Service  │  │   Exception Handlers    │  │
-│  │   /api/v1/*     │──│                 │  │   (Custom Exceptions)   │  │
-│  └────────┬────────┘  └────────┬────────┘  └─────────────────────────┘  │
-│           │                    │                                         │
-│  ┌────────▼────────────────────▼────────────────────────────────────┐   │
-│  │                        CHAIN LAYER                                │   │
-│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐    │   │
-│  │  │  ChatChain   │  │  RAGChain    │  │  RunnableWithHistory │    │   │
-│  │  │  (LLM Logic) │  │  (Retrieval) │  │  (Session Memory)    │    │   │
-│  │  └──────────────┘  └──────────────┘  └──────────────────────┘    │   │
-│  └──────────────────────────────────────────────────────────────────┘   │
-│                                                                          │
-│  ┌──────────────────────────────────────────────────────────────────┐   │
-│  │                        RAG PIPELINE                               │   │
-│  │  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌────────────┐  │   │
-│  │  │   Loader   │─▶│  Splitter  │─▶│VectorStore │─▶│ Retriever  │  │   │
-│  │  │(Playwright)│  │(Recursive) │  │  (Redis)   │  │   (MMR)    │  │   │
-│  │  └────────────┘  └────────────┘  └────────────┘  └────────────┘  │   │
-│  └──────────────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────────────┘
-                           │                        │
-                           ▼                        ▼
-              ┌────────────────────┐   ┌────────────────────┐
-              │   Redis Vector     │   │   Redis Chat       │
-              │   Store (6380)     │   │   History (6381)   │
-              │   - Embeddings     │   │   - Messages       │
-              │   - Metadata Tags  │   │   - Session Meta   │
-              └────────────────────┘   └────────────────────┘
+
+### System Workflows
+
+#### 1. Webpage Ingestion & Session Setup Flow
+```mermaid
+flowchart TD
+    A(["User opens tab & clicks Extension"]) --> B["content.js extracts current page URL"]
+    B --> C["POST /api/v1/session/new (page_url)"]
+    C --> D["RedisChatMessageHistory.create_session() (Port 6381)"]
+    D --> E["PlaywrightURLLoader loads page via worker thread"]
+    E --> F{"Page accessible & has text?"}
+    F -- "Yes" --> G["Extract cleaned page text"]
+    F -- "No / Auth Wall" --> H["Generate Fallback Document with page metadata"]
+    G --> I["RecursiveCharacterTextSplitter (1000 chars, 200 overlap)"]
+    H --> I
+    I --> J["Tag chunks: session_id, user_id, chunk_id"]
+    J --> K["Embed with gemini-embedding-001"]
+    K --> L["Store in Redis Vector Store (Port 6380)"]
+    L --> M(["Return 200 OK: session_id & user_id ready"])
+```
+
+#### 2. Query, Retrieval & Generation Flow
+```mermaid
+flowchart TD
+    U(["User sends message in chat widget"]) --> S["POST /api/v1/chat (prompt, session_id, user_id)"]
+    S --> H["Fetch conversation history from Redis (Port 6381)"]
+    H --> R["RetrieveManagement queries Redis Vector Store (Port 6380)"]
+    R --> F["Filter by Tag: Tag(session_id) == current_session_id"]
+    F --> M["MMR Search (k=3, fetch_k=5, lambda=0.5)"]
+    M --> C["Assemble Top-3 Context Chunks"]
+    C --> P["Construct Augmented Prompt (System + History + Context + Query)"]
+    P --> G["Invoke Google Gemini (Primary: 2.5-flash-lite / Fallback: 2.0-flash)"]
+    G --> W["Update Redis Chat History (User + AI turns)"]
+    W --> O["Return response JSON to Chrome Extension"]
+    O --> D["DOMPurify sanitizes + Marked.js & KaTeX render rich output"]
+    D --> E(["Render formatted response in floating chat widget"])
 ```
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Backend
 | Technology | Purpose |
@@ -139,7 +187,7 @@ AI Chat Assistant is an enterprise-grade Chrome extension that enables intellige
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 chrome-extension/
@@ -202,7 +250,7 @@ chrome-extension/
 
 ---
 
-## 🚀 Installation
+## Installation
 
 ### Prerequisites
 
@@ -282,7 +330,7 @@ $env:APP_LOG_LEVEL="DEBUG"; $env:APP_ENV="local"; uvicorn app.main:app --reload 
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 ### Environment Variables
 
@@ -311,7 +359,7 @@ Users can configure their own LLM settings through the extension:
 
 ---
 
-## 📖 Usage
+## Usage
 
 ### Starting a Chat Session
 
@@ -335,7 +383,7 @@ Users can configure their own LLM settings through the extension:
 
 ---
 
-## 📡 API Reference
+## API Reference
 
 ### Base URL
 ```
@@ -420,7 +468,7 @@ Content-Type: application/json
 
 ---
 
-## 🔧 Development
+## Development
 
 ### Running Tests
 
@@ -453,7 +501,7 @@ docker-compose up redis-vector redis-chat -d
 
 ---
 
-## 🔍 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -491,13 +539,13 @@ playwright install-deps
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License.
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - [LangChain](https://langchain.com/) - LLM orchestration framework
 - [Google Gemini](https://deepmind.google/technologies/gemini/) - Large language model
